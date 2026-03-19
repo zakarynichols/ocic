@@ -1,0 +1,10 @@
+{
+    "C_Cpp.default.cStandard": "gnu17",
+    "[c]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "editor.tabSize": 4,
+    "editor.useTabStops": false,
+    "clang-format.executable": "/usr/bin/clang-format"
+}
