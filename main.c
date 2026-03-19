@@ -31,6 +31,24 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    /*
+     * Make mounts private so /proc does not leak to the host.
+     *
+     * Without this: the host's / is "shared" (propagation), so the child's
+     * mount("proc", "/proc", ...) propagates back to the host. The mount
+     * persists after container exit and accumulates with each run, blocking
+     * rm -rf bundle. MS_PRIVATE stops this; MS_REC applies it recursively.
+     *
+     * Must be after unshare() and before fork().
+     *
+     * TO VERIFY THE BUG: comment this out, rebuild, then:
+     *   $ gcc -o main main.c && cd bundle && rm -f ./ocic && cp ../main ./ocic
+     *   $ echo "Before: $(mount | wc -l)"
+     *   $ sudo ./ocic run ocic-test -c 'exit'
+     *   $ echo "After:  $(mount | wc -l)"  # increases if bug is present
+     *   $ mount | grep bundle              # shows leaked mounts
+     * Restore this line to confirm the leak stops.
+     */
     mount(NULL, "/", NULL, MS_PRIVATE | MS_REC, NULL);
 
     pid_t pid = fork();
