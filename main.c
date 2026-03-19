@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 int main(void) {
-    if (unshare(CLONE_NEWUTS) < 0) {
+    if (unshare(CLONE_NEWUTS | CLONE_NEWPID) < 0) {
         fprintf(stderr, "unshare: %s\n", strerror(errno));
         return 1;
     }
