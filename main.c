@@ -3,11 +3,12 @@
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mount.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 int main(void) {
-    if (unshare(CLONE_NEWUTS | CLONE_NEWPID) < 0) {
+    if (unshare(CLONE_NEWUTS | CLONE_NEWPID | CLONE_NEWNS) < 0) {
         fprintf(stderr, "unshare: %s\n", strerror(errno));
         return 1;
     }
@@ -23,6 +24,7 @@ int main(void) {
             fprintf(stderr, "sethostname: %s\n", strerror(errno));
             _exit(1);
         }
+        mount("proc", "/proc", "proc", 0, NULL);
         execl("/bin/sh", "/bin/sh", NULL);
         fprintf(stderr, "execl: %s\n", strerror(errno));
         _exit(1);
