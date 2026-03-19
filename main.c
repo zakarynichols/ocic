@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <errno.h>
+#include <limits.h>
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +16,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    char rootfs[512];
-    char cwd[512];
+    char rootfs[PATH_MAX + 8];
+    char cwd[PATH_MAX];
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
         fprintf(stderr, "getcwd: %s\n", strerror(errno));
@@ -30,6 +31,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    mount(NULL, "/", NULL, MS_PRIVATE | MS_REC, NULL);
+
     pid_t pid = fork();
     if (pid < 0) {
         fprintf(stderr, "fork: %s\n", strerror(errno));
@@ -42,12 +45,12 @@ int main(int argc, char *argv[]) {
             _exit(1);
         }
 
-        if (mount(rootfs, rootfs, "", MS_BIND, NULL) < 0) {
-            fprintf(stderr, "mount: %s\n", strerror(errno));
+        if (chdir(rootfs) < 0) {
+            fprintf(stderr, "chdir: %s\n", strerror(errno));
             _exit(1);
         }
 
-        if (chroot(rootfs) < 0) {
+        if (chroot(".") < 0) {
             fprintf(stderr, "chroot: %s\n", strerror(errno));
             _exit(1);
         }
